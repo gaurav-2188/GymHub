@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gym Hub - Find Your Fitness Community</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+
+    <style>
+
+        body {
+
+            font-family: 'Inter', sans-serif;
+
+            background-color: #f8f9fa;
+
+        }
+
+        .leaflet-popup-content-wrapper {
+
+            border-radius: 12px;
+
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+
+        .fade-in-fast { animation: fadeIn 0.3s ease-in-out; }
+
+        @keyframes fadeIn {
+
+            from { opacity: 0; transform: translateY(10px); }
+
+            to { opacity: 1; transform: translateY(0); }
+
+        }
+
+        .brand-gradient {
+
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+
+        }
+
+        .shadow-elegant {
+
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+        }
+
+        .plan-card:hover {
+
+            transform: translateY(-4px) scale(1.02);
+
+            box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.15), 0 10px 10px -5px rgba(99, 102, 241, 0.1);
+
+        }
+
+        /* Mobile Menu Transition */
+
+        #mobile-menu {
+
+            transition: transform 0.3s ease-in-out;
+
+        }
+
+        .slide-down { animation: slideDown 0.3s ease-out forwards; }
+
+        @keyframes slideDown {
+
+            from { opacity: 0; transform: translateY(-10px); }
+
+            to { opacity: 1; transform: translateY(0); }
+
+        }
+
+        /* Chat scrollbar */
+
+        .chat-scrollbar::-webkit-scrollbar { width: 4px; }
+
+        .chat-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+
+        .chat-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+        .chat-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .typing-indicator span {
+
+            display: inline-block;
+
+            width: 8px;
+
+            height: 8px;
+
+            border-radius: 50%;
+
+            background-color: #6366f1;
+
+            animation: bounce 1.4s infinite ease-in-out both;
+
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+
+            0%, 80%, 100% { transform: scale(0); }
+
+            40% { transform: scale(1.0); }
+
+        }
+
+        /* Toggle Switch */
+
+        .switch {
+
+          position: relative;
+
+          display: inline-block;
+
+          width: 48px;
+
+          height: 28px;
+
+        }
+
+        .switch input { display:none; }
+
+        .slider {
+
+          position: absolute;
+
+          cursor: pointer;
+
+          top: 0;
+
+          left: 0;
+
+          right: 0;
+
+          bottom: 0;
+
+          background-color: #ccc;
+
+          transition: .4s;
+
+          border-radius: 28px;
+
+        }
+
+        .slider:before {
+
+          position: absolute;
+
+          content: "";
+
+          height: 20px;
+
+          width: 20px;
+
+          left: 4px;
+
+          bottom: 4px;
+
+          background-color: white;
+
+          transition: .4s;
+
+          border-radius: 50%;
+
+        }
+
+        input:checked + .slider { background-color: #6366f1; }
+
+        input:checked + .slider:before { transform: translateX(20px); }
+
+    </style>
+
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+
+
+    <div class="min-h-screen flex flex-col">
+
+
+
+        <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-40">
+
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+                <div class="flex items-center justify-between h-16">
+
+                    <div class="flex-shrink-0 cursor-pointer flex items-center gap-3" id="home-btn">
+
+                         <svg class="w-8 h-8" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+
+                            <defs>
+
+                                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+
+                                     <stop offset="0%" style="stop-color:#6366f1"></stop>
+
+                                     <stop offset="100%" style="stop-color:#8b5cf6"></stop>
+
+                                </linearGradient>
+
+                            </defs>
+
+                            <path fill="url(#logoGradient)" d="M50,0 C22.4,0 0,22.4 0,50 C0,77.6 22.4,100 50,100 C57.7,100 64.9,98.2 71.1,95.1 L71.1,77.2 C65,79.5 57.9,81.2 50,81.2 C32.8,81.2 18.8,67.2 18.8,50 C18.8,32.8 32.8,18.8 50,18.8 C67.2,18.8 81.2,32.8 81.2,50 L81.2,53.1 L62.5,53.1 L62.5,71.9 L100,71.9 L100,50 C100,22.4 77.6,0 50,0 Z"></path>
+
+                        </svg>
+
+                        <span class="text-2xl font-extrabold text-gray-800">Gym Hub</span>
+
+                    </div>
+
+                    <div class="hidden md:block">
+
+                        <nav class="flex items-center space-x-4">
+
+                            <a href="#" id="home-nav-btn" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+
+                            <a href="#" id="gym-community-nav-btn" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">My Gym</a>
+
+                            <a href="#" id="global-community-nav-btn" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Global Hub</a>
+
+                            <a href="#" id="ai-coach-nav-btn" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">AI Coach</a>
+
+                            <a href="#" id="profile-nav-btn" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Profile</a>
+
+                        </nav>
+
+                    </div>
+
+                    <div class="md:hidden">
+
+                        <button id="mobile-menu-btn" class="text-gray-800 hover:text-indigo-600 p-2 rounded-md">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <div id="mobile-menu" class="fixed top-0 left-0 h-full w-full bg-white z-50 transform -translate-x-full md:hidden">
+
+            <div class="flex justify-end p-4">
+
+                <button id="close-mobile-menu-btn" class="text-gray-800 p-2">
+
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+
+                    </svg>
+
+                </button>
+
+            </div>
+
+            <nav class="flex flex-col items-center justify-center h-full -mt-16 space-y-8 text-xl">
+
+                 <a href="#" id="mobile-home-nav-btn" class="text-gray-800 hover:text-indigo-600 font-semibold">Home</a>
+
+                 <a href="#" id="mobile-gym-community-nav-btn" class="text-gray-800 hover:text-indigo-600 font-semibold">My Gym</a>
+
+                 <a href="#" id="mobile-global-community-nav-btn" class="text-gray-800 hover:text-indigo-600 font-semibold">Global Hub</a>
+
+                 <a href="#" id="mobile-ai-coach-nav-btn" class="text-gray-800 hover:text-indigo-600 font-semibold">AI Coach</a>
+
+                 <a href="#" id="mobile-profile-nav-btn" class="text-gray-800 hover:text-indigo-600 font-semibold">Profile</a>
+
+            </nav>
+
+        </div>
+
+
+
+
+
+        <main class="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+
+            <div id="home-view">
+
+                <div class="text-center mb-12 relative pb-12">
+
+                    <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl lg:text-5xl">Your Fitness Community Awaits</h2>
+
+                    <p class="mt-4 text-lg sm:text-xl text-gray-600">Discover, connect, and thrive with the best gyms in Bengaluru.</p>
+
+                    <p class="absolute bottom-0 right-0 text-xl text-gray-400 italic">Sponsored by Tensor Fit</p>
+
+                </div>
+
+                
+
+                <div class="bg-white p-4 rounded-xl shadow-elegant mb-8 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-[70px] z-30 backdrop-blur-sm bg-white/90">
+
+                    <div class="w-full sm:w-auto sm:flex-grow lg:flex-grow-0 lg:w-1/3">
+
+                        <input type="text" id="search-input" placeholder="Search for a gym by name or area..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-center sm:justify-end gap-4">
+
+                        <select id="sort-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+
+                            <option value="default">Sort By</option>
+
+                            <option value="best_value">Best Value</option>
+
+                            <option value="price_asc">Price: Low to High</option>
+
+                            <option value="price_desc">Price: High to Low</option>
+
+                        </select>
+
+                        <select id="rating-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+
+                            <option value="0">All Ratings</option>
+
+                            <option value="4.5">4.5★ & Up</option>
+
+                            <option value="4">4★ & Up</option>
+
+                            <option value="3">3★ & Up</option>
+
+                        </select>
+
+                        <div class="flex rounded-lg bg-gray-100 p-1">
+
+                            <button id="show-list-btn" class="px-3 py-1.5 text-sm font-semibold rounded-md bg-indigo-600 text-white shadow">List</button>
+
+                            <button id="show-map-btn" class="px-3 py-1.5 text-sm font-semibold rounded-md text-gray-600">Map</button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div id="gym-list-view">
+
+                    <div id="gym-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                        </div>
+
+                    <p id="no-results" class="text-center text-gray-500 mt-8 hidden">No gyms found matching your criteria.</p>
+
+                </div>
+
+
+
+                <div id="map-view" class="hidden">
+
+                    <div id="map" class="h-[600px] w-full rounded-lg shadow-md"></div>
+
+                </div>
+
+            </div>
+
+
+
+            <div id="gym-community-view" class="hidden fade-in">
+
+                 </div>
+
+            
+
+             <div id="global-community-view" class="hidden fade-in">
+
+                 </div>
+
+            
+
+             <div id="ai-coach-view" class="hidden fade-in">
+
+                 </div>
+
+            
+
+            <div id="profile-view" class="hidden fade-in">
+
+                 </div>
+
+        </main>
+
+        
+
+        <footer class="bg-white border-t border-gray-200 mt-12">
+
+             <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+
+                <p>&copy; 2025 Gym Hub</p>
+
+            </div>
+
+        </footer>
+
+
+
+    </div>
+
+
+
+    <div id="gym-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden fade-in">
+
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
+
+            </div>
+
+    </div>
+
+
+
+
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // --- DATA ---
+
+            const gyms = [
+
+                { id: 1, name: "Gold's Gym Koramangala", area: "Koramangala", rating: 4.8, members: 78, capacity: 100, sponsored: false, lat: 12.9352, lng: 77.6245, image: `https://placehold.co/600x400/1f2937/ffffff?text=Gold's+Gym`, amenities: ["Cardio Zone", "Strength Training", "Steam Room", "Personal Trainers"], pricing: { daily: 500, monthly: 3000, quarterly: 8000, yearly: 25000 }, discount: "10% off on yearly plan", trainer: { available: true, costPerHour: 800 } },
+
+                { id: 2, name: "Zenith Fitness", area: "Indiranagar", rating: 4.9, members: 180, capacity: 200, sponsored: false, lat: 12.9784, lng: 77.6408, image: `https://placehold.co/600x400/8b5cf6/ffffff?text=Zenith+Fitness`, amenities: ["Group Classes", "Yoga Studio", "Functional Training", "CrossFit"], pricing: { daily: 600, monthly: 4500, quarterly: 12000, yearly: 40000 }, discount: "First class free!", trainer: { available: true, costPerHour: 1000 } },
+
+                { id: 3, name: "Fitness First HSR Layout", area: "HSR Layout", rating: 4.5, members: 115, capacity: 150, sponsored: true, lat: 12.9121, lng: 77.6446, image: `https://placehold.co/600x400/ec4899/ffffff?text=Fitness+First`, amenities: ["Swimming Pool", "Sauna", "Cardio Zone", "Free Weights"], pricing: { daily: 700, monthly: 5000, quarterly: 14000, yearly: 45000 }, discount: null, trainer: { available: true, costPerHour: 1200 } },
+
+                { id: 4, name: "Flex Fit Jayanagar", area: "Jayanagar", rating: 4.2, members: 65, capacity: 80, sponsored: false, lat: 12.9216, lng: 77.5838, image: `https://placehold.co/600x400/f59e0b/ffffff?text=Flex+Fit`, amenities: ["24/7 Access", "Strength Training", "Cardio Machines"], pricing: { daily: 400, monthly: 2500, quarterly: 6500, yearly: 20000 }, discount: "15% off quarterly", trainer: { available: true, costPerHour: 700 } },
+
+                { id: 5, name: "Kaizen Fitness Marathahalli", area: "Marathahalli", rating: 3.9, members: 95, capacity: 120, sponsored: false, lat: 12.9569, lng: 77.7011, image: `https://placehold.co/600x400/10b981/ffffff?text=Kaizen`, amenities: ["Cardio Zone", "Personal Trainers", "Zumba Classes"], pricing: { daily: 300, monthly: 2000, quarterly: 5000, yearly: 18000 }, discount: null, trainer: { available: true, costPerHour: 500 } },
+
+                { id: 6, name: "F45 Training Whitefield", area: "Whitefield", rating: 4.9, members: 45, capacity: 50, sponsored: false, lat: 12.9698, lng: 77.7499, image: `https://placehold.co/600x400/3b82f6/ffffff?text=F45+Training`, amenities: ["HIIT Classes", "Functional Training", "Team Environment"], pricing: { daily: 800, monthly: 6000, quarterly: 16000, yearly: 55000 }, discount: "20% off first month", trainer: { available: true, costPerHour: 1500 } },
+
+                { id: 7, name: "Core Strength JP Nagar", area: "JP Nagar", rating: 4.6, members: 90, capacity: 110, sponsored: false, lat: 12.9063, lng: 77.5858, image: `https://placehold.co/600x400/ef4444/ffffff?text=Core+Strength`, amenities: ["Pilates", "Strength Training", "Nutritionist"], pricing: { daily: 550, monthly: 3500, quarterly: 9000, yearly: 30000 }, discount: null, trainer: { available: true, costPerHour: 900 } },
+
+                { id: 8, name: "Iron Temple Malleswaram", area: "Malleswaram", rating: 4.7, members: 120, capacity: 130, sponsored: true, lat: 13.0010, lng: 77.5714, image: `https://placehold.co/600x400/6b7280/ffffff?text=Iron+Temple`, amenities: ["Powerlifting Zone", "Free Weights", "Sauna"], pricing: { daily: 650, monthly: 4800, quarterly: 13000, yearly: 42000 }, discount: "Free protein shake", trainer: { available: true, costPerHour: 1100 } },
+
+                { id: 9, name: "The Fit Factory Electronic City", area: "Electronic City", rating: 4.1, members: 200, capacity: 250, sponsored: false, lat: 12.8452, lng: 77.6602, image: `https://placehold.co/600x400/22c55e/ffffff?text=Fit+Factory`, amenities: ["Corporate Wellness", "Cardio Zone", "Group Classes"], pricing: { daily: 350, monthly: 2200, quarterly: 6000, yearly: 21000 }, discount: null, trainer: { available: true, costPerHour: 600 } },
+
+                { id: 10, name: "Aero Fitness Yelahanka", area: "Yelahanka", rating: 4.3, members: 85, capacity: 100, sponsored: false, lat: 13.1007, lng: 77.5963, image: `https://placehold.co/600x400/84cc16/ffffff?text=Aero+Fitness`, amenities: ["Aerobics", "Zumba", "Yoga"], pricing: { daily: 450, monthly: 2800, quarterly: 7500, yearly: 24000 }, discount: "10% off for couples", trainer: { available: true, costPerHour: 650 } },
+
+                { id: 11, name: "Atlas Gym Rajajinagar", area: "Rajajinagar", rating: 4.0, members: 110, capacity: 140, sponsored: false, lat: 12.9902, lng: 77.5521, image: `https://placehold.co/600x400/14b8a6/ffffff?text=Atlas+Gym`, amenities: ["Old School Equipment", "Bodybuilding Coaches", "Free Weights"], pricing: { daily: 300, monthly: 1900, quarterly: 5200, yearly: 19000 }, discount: null, trainer: { available: true, costPerHour: 450 } },
+
+                { id: 12, name: "Pulse Fitness Banashankari", area: "Banashankari", rating: 4.5, members: 130, capacity: 160, sponsored: false, lat: 12.9254, lng: 77.5467, image: `https://placehold.co/600x400/f97316/ffffff?text=Pulse+Fitness`, amenities: ["24/7 Access", "Cardio Zone", "Steam Room"], pricing: { daily: 500, monthly: 3200, quarterly: 8500, yearly: 28000 }, discount: null, trainer: { available: true, costPerHour: 750 } },
+
+                { id: 13, name: "Heritage Strength Basavanagudi", area: "Basavanagudi", rating: 4.8, members: 70, capacity: 80, sponsored: false, lat: 12.9424, lng: 77.5714, image: `https://placehold.co/600x400/a855f7/ffffff?text=Heritage`, amenities: ["Yoga Studio", "Meditation Room", "Personal Trainers"], pricing: { daily: 700, monthly: 5500, quarterly: 15000, yearly: 50000 }, discount: "Free yoga mat", trainer: { available: true, costPerHour: 1300 } },
+
+                { id: 14, name: "Tech Park Fitness Bellandur", area: "Bellandur", rating: 4.4, members: 250, capacity: 300, sponsored: true, lat: 12.9287, lng: 77.6784, image: `https://placehold.co/600x400/0ea5e9/ffffff?text=Tech+Park+Fit`, amenities: ["Corporate Plans", "Swimming Pool", "CrossFit"], pricing: { daily: 600, monthly: 4000, quarterly: 11000, yearly: 38000 }, discount: null, trainer: { available: true, costPerHour: 950 } },
+
+                { id: 15, name: "The Body Architects RT Nagar", area: "RT Nagar", rating: 4.2, members: 95, capacity: 120, sponsored: false, lat: 13.0215, lng: 77.5971, image: `https://placehold.co/600x400/d946ef/ffffff?text=Body+Architects`, amenities: ["Bodybuilding", "Nutritionist", "Posing Room"], pricing: { daily: 400, monthly: 2600, quarterly: 7000, yearly: 22000 }, discount: "10% student discount", trainer: { available: true, costPerHour: 800 } },
+
+                { id: 16, name: "Sarjapur Stronghold", area: "Sarjapur Road", rating: 4.6, members: 150, capacity: 180, sponsored: false, lat: 12.9127, lng: 77.6822, image: `https://placehold.co/600x400/65a30d/ffffff?text=Stronghold`, amenities: ["Strongman Equipment", "Powerlifting", "Group Classes"], pricing: { daily: 550, monthly: 3800, quarterly: 10000, yearly: 35000 }, discount: null, trainer: { available: true, costPerHour: 1000 } },
+
+                { id: 17, name: "Elevate Athletic Club Hebbal", area: "Hebbal", rating: 4.9, members: 100, capacity: 120, sponsored: true, lat: 13.0359, lng: 77.5970, image: `https://placehold.co/600x400/facc15/ffffff?text=Elevate+Club`, amenities: ["Rooftop Pool", "Luxury Spa", "Valet Parking", "Juice Bar"], pricing: { daily: 1000, monthly: 8000, quarterly: 22000, yearly: 75000 }, discount: "Founding member discount", trainer: { available: true, costPerHour: 2000 } },
+
+                { id: 18, name: "Momentum Fitness BTM Layout", area: "BTM Layout", rating: 4.3, members: 180, capacity: 220, sponsored: false, lat: 12.9166, lng: 77.6101, image: `https://placehold.co/600x400/fb923c/ffffff?text=Momentum`, amenities: ["24/7 Access", "Functional Training", "Cardio Zone"], pricing: { daily: 400, monthly: 2400, quarterly: 6500, yearly: 23000 }, discount: "20% off yearly", trainer: { available: true, costPerHour: 550 } },
+
+                { id: 19, name: "Lakeside Wellness Ulsoor", area: "Ulsoor", rating: 4.7, members: 60, capacity: 70, sponsored: false, lat: 12.9800, lng: 77.6200, image: `https://placehold.co/600x400/4ade80/ffffff?text=Lakeside`, amenities: ["Yoga by the lake", "Meditation", "Holistic Health"], pricing: { daily: 600, monthly: 4200, quarterly: 11500, yearly: 40000 }, discount: null, trainer: { available: false, costPerHour: null } },
+
+                { id: 20, name: "Cantonment Core Frazer Town", area: "Frazer Town", rating: 4.1, members: 88, capacity: 100, sponsored: false, lat: 12.9984, lng: 77.6127, image: `https://placehold.co/600x400/2dd4bf/ffffff?text=Cantonment`, amenities: ["Boxing Ring", "MMA training", "Strength Training"], pricing: { daily: 450, monthly: 3100, quarterly: 8200, yearly: 27000 }, discount: "First boxing class free", trainer: { available: true, costPerHour: 850 } },
+
+                { id: 21, name: "Synergy Strength Kalyan Nagar", area: "Kalyan Nagar", rating: 4.5, members: 140, capacity: 150, sponsored: false, lat: 13.0221, lng: 77.6433, image: `https://placehold.co/600x400/c084fc/ffffff?text=Synergy`, amenities: ["CrossFit Affiliate", "Olympic Lifting", "Community Events"], pricing: { daily: 700, monthly: 5200, quarterly: 14500, yearly: 48000 }, discount: null, trainer: { available: true, costPerHour: 1200 } },
+
+                { id: 22, name: "Westgate Workout Kengeri", area: "Kengeri", rating: 3.8, members: 105, capacity: 150, sponsored: false, lat: 12.9180, lng: 77.4870, image: `https://placehold.co/600x400/f87171/ffffff?text=Westgate`, amenities: ["Cardio Zone", "Free Weights", "Spacious Floor"], pricing: { daily: 250, monthly: 1800, quarterly: 4800, yearly: 17000 }, discount: "Special student prices", trainer: { available: true, costPerHour: 400 } },
+
+                { id: 23, name: "Balance Studio CV Raman Nagar", area: "CV Raman Nagar", rating: 4.6, members: 55, capacity: 60, sponsored: false, lat: 12.9863, lng: 77.6621, image: `https://placehold.co/600x400/60a5fa/ffffff?text=Balance`, amenities: ["Pilates", "Yoga", "Barre Classes"], pricing: { daily: 650, monthly: 4800, quarterly: 13000, yearly: 44000 }, discount: null, trainer: { available: false, costPerHour: null } },
+
+                { id: 24, name: "Victory Fitness Vijayanagar", area: "Vijayanagar", rating: 4.0, members: 160, capacity: 200, sponsored: false, lat: 12.9743, lng: 77.5348, image: `https://placehold.co/600x400/eab308/ffffff?text=Victory`, amenities: ["Large Cardio Area", "Strength Machines", "Group Classes"], pricing: { daily: 350, monthly: 2300, quarterly: 6200, yearly: 22000 }, discount: "1 month free on yearly", trainer: { available: true, costPerHour: 500 } },
+
+                { id: 25, name: "The Peak Project Nagarbhavi", area: "Nagarbhavi", rating: 4.2, members: 92, capacity: 110, sponsored: false, lat: 12.9667, lng: 77.5126, image: `https://placehold.co/600x400/a78bfa/ffffff?text=Peak+Project`, amenities: ["Functional Training", "HIIT", "Personal Trainers"], pricing: { daily: 500, monthly: 3300, quarterly: 9000, yearly: 31000 }, discount: null, trainer: { available: true, costPerHour: 700 } },
+
+                { id: 26, name: "Urban Pump Koramangala", area: "Koramangala", rating: 4.4, members: 150, capacity: 180, sponsored: false, lat: 12.9279, lng: 77.6271, image: `https://placehold.co/600x400/f472b6/ffffff?text=Urban+Pump`, amenities: ["DJ Nights", "Les Mills Classes", "Juice Bar"], pricing: { daily: 600, monthly: 4200, quarterly: 11500, yearly: 39000 }, discount: null, trainer: { available: true, costPerHour: 1100 } },
+
+                { id: 27, name: "Endurance House Indiranagar", area: "Indiranagar", rating: 4.3, members: 110, capacity: 130, sponsored: false, lat: 12.9719, lng: 77.6412, image: `https://placehold.co/600x400/78716c/ffffff?text=Endurance`, amenities: ["Spin Studio", "Treadmill Zone", "Rowing Machines"], pricing: { daily: 550, monthly: 3700, quarterly: 10000, yearly: 34000 }, discount: "10 classes pack available", trainer: { available: true, costPerHour: 900 } },
+
+                { id: 28, name: "Steel Works HSR Layout", area: "HSR Layout", rating: 4.1, members: 130, capacity: 160, sponsored: false, lat: 12.9085, lng: 77.6485, image: `https://placehold.co/600x400/57534e/ffffff?text=Steel+Works`, amenities: ["Heavy Duty Equipment", "Powerlifting", "Strength Coaching"], pricing: { daily: 400, monthly: 2700, quarterly: 7200, yearly: 25000 }, discount: null, trainer: { available: true, costPerHour: 600 } },
+
+                { id: 29, name: "Serenity Yoga Jayanagar", area: "Jayanagar", rating: 4.9, members: 80, capacity: 90, sponsored: false, lat: 12.9301, lng: 77.5896, image: `https://placehold.co/600x400/93c5fd/ffffff?text=Serenity`, amenities: ["Ashtanga Yoga", "Vinyasa Flow", "Meditation Hall"], pricing: { daily: 800, monthly: 6000, quarterly: 16000, yearly: 55000 }, discount: "Introductory offer", trainer: { available: false, costPerHour: null } },
+
+                { id: 30, name: "Outer Ring Reps Marathahalli", area: "Marathahalli", rating: 3.9, members: 220, capacity: 250, sponsored: false, lat: 12.9592, lng: 77.6974, image: `https://placehold.co/600x400/fdba74/ffffff?text=Outer+Ring+Reps`, amenities: ["Corporate Membership", "Large Floor", "Cardio Machines"], pricing: { daily: 300, monthly: 2100, quarterly: 5500, yearly: 19500 }, discount: null, trainer: { available: true, costPerHour: 500 } },
+
+                { id: 31, name: "ITPL Iron Whitefield", area: "Whitefield", rating: 4.2, members: 180, capacity: 200, sponsored: false, lat: 12.9847, lng: 77.7496, image: `https://placehold.co/600x400/34d399/ffffff?text=ITPL+Iron`, amenities: ["Strength Training", "Personal Trainers", "Group Fitness"], pricing: { daily: 450, monthly: 3000, quarterly: 8000, yearly: 26000 }, discount: "15% off for tech park employees", trainer: { available: true, costPerHour: 750 } },
+
+                { id: 32, name: "Bommanahalli Bodyworks", area: "Bommanahalli", rating: 4.0, members: 100, capacity: 120, sponsored: false, lat: 12.9040, lng: 77.6253, image: `https://placehold.co/600x400/fb7185/ffffff?text=Bodyworks`, amenities: ["Cardio", "Weights", "Zumba"], pricing: { daily: 300, monthly: 2000, quarterly: 5400, yearly: 20000 }, discount: null, trainer: { available: true, costPerHour: 450 } },
+
+                { id: 33, name: "South End Strength JP Nagar", area: "JP Nagar", rating: 4.5, members: 115, capacity: 130, sponsored: false, lat: 12.9099, lng: 77.5921, image: `https://placehold.co/600x400/818cf8/ffffff?text=South+End`, amenities: ["CrossFit", "Weightlifting", "HIIT"], pricing: { daily: 650, monthly: 4600, quarterly: 12500, yearly: 41000 }, discount: "10% off for students", trainer: { available: true, costPerHour: 1000 } },
+
+                { id: 34, "name": "Vyalikaval Vitality", "area": "Malleswaram", "rating": 4.1, "members": 75, "capacity": 90, "sponsored": false, "lat": 13.0076, "lng": 77.5733, "image": "https://placehold.co/600x400/fca5a5/ffffff?text=Vitality", "amenities": ["Yoga", "Aerobics", "Ladies Only Hours"], "pricing": { "daily": 350, "monthly": 2400, "quarterly": 6500, "yearly": 23000 }, "discount": null, trainer: { available: false, costPerHour: null } },
+
+                { id: 35, "name": "E-City Elite Fitness", "area": "Electronic City", "rating": 4.7, "members": 150, "capacity": 180, "sponsored": true, "lat": 12.8402, "lng": 77.6758, "image": "https://placehold.co/600x400/bbf7d0/ffffff?text=Elite+Fitness", "amenities": ["Swimming Pool", "Tennis Court", "Sauna", "Cafe"], "pricing": { "daily": 900, "monthly": 7000, "quarterly": 19000, "yearly": 65000 }, "discount": "Corporate Discount", trainer: { available: true, costPerHour: 1800 } },
+
+                { id: 36, "name": "North Bangalore Barbell", "area": "Yelahanka", "rating": 4.4, "members": 100, "capacity": 110, "sponsored": false, "lat": 13.0913, "lng": 77.5891, "image": "https://placehold.co/600x400/bfdbfe/ffffff?text=N.B.B.C", "amenities": ["Powerlifting Racks", "Competition Plates", "Chalk Provided"], "pricing": { "daily": 500, "monthly": 3400, "quarterly": 9200, "yearly": 32000 }, "discount": null, trainer: { available: true, costPerHour: 900 } },
+
+                { id: 37, "name": "Rajarajeshwari Powerhouse", "area": "Rajarajeshwari Nagar", "rating": 4.2, "members": 130, "capacity": 160, "sponsored": false, "lat": 12.9261, "lng": 77.5183, "image": "https://placehold.co/600x400/ddd6fe/ffffff?text=Powerhouse", "amenities": ["Large Gym Floor", "Cardio Theatre", "Functional Area"], "pricing": { "daily": 400, "monthly": 2800, "quarterly": 7500, "yearly": 26000 }, "discount": "10% off for families", trainer: { available: true, costPerHour: 650 } },
+
+                { id: 38, "name": "Gandhi Bazaar Gains", "area": "Basavanagudi", "rating": 4.0, "members": 85, "capacity": 100, "sponsored": false, "lat": 12.9472, "lng": 77.5710, "image": "https://placehold.co/600x400/fef08a/ffffff?text=Gains", "amenities": ["Free Weights", "Cardio Machines", "Old-school Vibe"], "pricing": { "daily": 300, "monthly": 2200, "quarterly": 6000, "yearly": 21000 }, "discount": null, trainer: { available: true, costPerHour: 550 } },
+
+                { id: 39, "name": "Kadubeesanahalli Core Club", "area": "Kadubeesanahalli", "rating": 4.3, "members": 160, "capacity": 200, "sponsored": false, "lat": 12.9366, "lng": 77.6908, "image": "https://placehold.co/600x400/a5f3fc/ffffff?text=Core+Club", "amenities": ["Les Mills Classes", "Spin Studio", "Steam Room"], "pricing": { "daily": 550, "monthly": 3900, "quarterly": 10500, "yearly": 37000 }, "discount": "Refer a friend bonus", trainer: { available: true, costPerHour: 950 } },
+
+                { id: 40, "name": "RMV Rock Solid Gym", "area": "RMV Extension", "rating": 4.6, "members": 90, "capacity": 100, "sponsored": false, "lat": 13.0335, "lng": 77.5828, "image": "https://placehold.co/600x400/d4d4d8/ffffff?text=Rock+Solid", "amenities": ["Premium Equipment", "Personal Training", "Nutrition Counseling"], "pricing": { "daily": 700, "monthly": 5000, "quarterly": 13500, "yearly": 46000 }, "discount": null, trainer: { available: true, costPerHour: 1200 } },
+
+                { id: 41, "name": "Silk Board Sweat Society", "area": "BTM Layout", "rating": 3.9, "members": 190, "capacity": 240, "sponsored": false, "lat": 12.9171, "lng": 77.6238, "image": "https://placehold.co/600x400/fecaca/ffffff?text=Sweat+Society", "amenities": ["24/7 Access", "Large Cardio Section", "Affordable"], "pricing": { "daily": 250, "monthly": 1900, "quarterly": 5000, "yearly": 18000 }, "discount": "No frills pricing", trainer: { available: true, costPerHour: 400 } },
+
+                { id: 42, "name": "Domlur Dynamix", "area": "Domlur", "rating": 4.1, "members": 105, "capacity": 130, "sponsored": false, "lat": 12.9619, "lng": 77.6383, "image": "https://placehold.co/600x400/bbf7d0/ffffff?text=Dynamix", "amenities": ["Functional Fitness", "Kettlebells", "Battle Ropes"], "pricing": { "daily": 450, "monthly": 3200, "quarterly": 8500, "yearly": 29000 }, "discount": null, trainer: { available: true, costPerHour: 800 } },
+
+                { id: 43, "name": "Banaswadi Body Temple", "area": "Banaswadi", "rating": 4.3, "members": 125, "capacity": 150, "sponsored": false, "lat": 13.0125, "lng": 77.6517, "image": "https://placehold.co/600x400/e9d5ff/ffffff?text=Body+Temple", "amenities": ["Zumba", "Aerobics", "Yoga", "Strength"], "pricing": { "daily": 500, "monthly": 3500, "quarterly": 9500, "yearly": 33000 }, "discount": "All class access", trainer: { available: true, costPerHour: 700 } },
+
+                { id: 44, "name": "Mysore Road Muscle", "area": "Mysore Road", "rating": 3.8, "members": 150, "capacity": 200, "sponsored": false, "lat": 12.9461, "lng": 77.5183, "image": "https://placehold.co/600x400/fef9c3/ffffff?text=Muscle", "amenities": ["Heavy Weights", "Cardio Machines", "Spacious"], "pricing": { "daily": 200, "monthly": 1700, "quarterly": 4500, "yearly": 16000 }, "discount": null, trainer: { available: true, costPerHour: 400 } },
+
+                { id: 45, "name": "Jakkur Jetts", "area": "Jakkur", "rating": 4.4, "members": 80, "capacity": 90, "sponsored": false, "lat": 13.0781, "lng": 77.6068, "image": "https://placehold.co/600x400/bae6fd/ffffff?text=Jetts", "amenities": ["24/7 Access", "Boutique Feel", "Personal Training Focus"], "pricing": { "daily": 600, "monthly": 4500, "quarterly": 12000, "yearly": 40000 }, "discount": "1 free PT session", trainer: { available: true, costPerHour: 1100 } },
+
+                { id: 46, "name": "Peenya Power Gym", "area": "Peenya", "rating": 3.7, "members": 180, "capacity": 220, "sponsored": false, "lat": 13.0331, "lng": 77.5134, "image": "https://placehold.co/600x400/e2e8f0/ffffff?text=Power+Gym", "amenities": ["Industrial Strength", "Large space", "Affordable"], "pricing": { "daily": 200, "monthly": 1600, "quarterly": 4200, "yearly": 15000 }, "discount": null, trainer: { available: true, costPerHour: 350 } },
+
+                { id: 47, "name": "Sadashivanagar Sculpt", "area": "Sadashivanagar", "rating": 4.8, "members": 100, "capacity": 110, "sponsored": false, "lat": 13.0087, "lng": 77.5816, "image": "https://placehold.co/600x400/f5d0fe/ffffff?text=Sculpt", "amenities": ["Reformer Pilates", "Luxury Locker Rooms", "Valet"], "pricing": { "daily": 1200, "monthly": 9000, "quarterly": 25000, "yearly": 85000 }, "discount": "Exclusive Membership", trainer: { available: false, costPerHour: null } },
+
+                { id: 48, "name": "Varthur Velocity", "area": "Varthur", "rating": 4.1, "members": 140, "capacity": 180, "sponsored": false, "lat": 12.9454, "lng": 77.7446, "image": "https://placehold.co/600x400/ccfbf1/ffffff?text=Velocity", "amenities": ["Spin Studio", "CrossFit Box", "Yoga Deck"], "pricing": { "daily": 500, "monthly": 3600, "quarterly": 9800, "yearly": 34000 }, "discount": "Bundle classes and save", trainer: { available: true, costPerHour: 800 } },
+
+                { id: 49, "name": "Richmond Town Rhythm", "area": "Richmond Town", "rating": 4.5, "members": 95, "capacity": 100, "sponsored": false, "lat": 12.9610, "lng": 77.6015, "image": "https://placehold.co/600x400/fde68a/ffffff?text=Rhythm", "amenities": ["Dance Fitness", "Zumba", "Bolly Aerobics"], "pricing": { "daily": 600, "monthly": 4000, "quarterly": 11000, "yearly": 38000 }, "discount": null, trainer: { available: false, costPerHour: null } },
+
+                { id: 50, "name": "Yeshwanthpur Yard", "area": "Yeshwanthpur", "rating": 4.0, "members": 170, "capacity": 210, "sponsored": false, "lat": 13.0237, "lng": 77.5514, "image": "https://placehold.co/600x400/e0f2fe/ffffff?text=The+Yard", "amenities": ["Outdoor Training Area", "Tire Flips", "Sledgehammers"], "pricing": { "daily": 400, "monthly": 2900, "quarterly": 7800, "yearly": 27000 }, "discount": "Group discounts available", trainer: { available: true, costPerHour: 600 } }
+
+            ];
+
+
+
+            const gymCommunityData = {
+
+                1: {
+
+                    members: ["Alex Doe", "Brenda Smith", "Charlie Brown", "Diana Prince", "Ethan Hunt", "Fiona Glenanne"],
+
+                    events: [{ name: "Yoga Workshop", date: "Sep 20, 2025" }, { name: "Deadlift Competition", date: "Oct 5, 2025" }],
+
+                    posts: [
+
+                        { author: "Brenda Smith", text: "New personal best on deadlifts today! Feeling strong.", avatar: "BS", image: "https://placehold.co/600x400/334155/ffffff?text=Deadlift+PR", timestamp: "2h ago" },
+
+                        { author: "Alex Doe", text: "Morning cardio with a view.", avatar: "AD", image: "https://placehold.co/600x400/059669/ffffff?text=Cardio+View", timestamp: "8h ago" },
+
+                    ],
+
+                    chat: [
+
+                        { author: "Charlie Brown", text: "Anyone hitting legs tomorrow?" },
+
+                        { author: "Diana Prince", text: "I am! Morning session." }
+
+                    ]
+
+                },
+
+                2: {
+
+                    members: ["Grace Hopper", "Ivan Petrov", "Judy Alvarez", "Ken Masters"],
+
+                    events: [{ name: "Cult Live Session", date: "Every Saturday" }],
+
+                    posts: [{ author: "Grace Hopper", text: "Loved the energy in today's class!", avatar: "GH", image: "https://placehold.co/600x400/be185d/ffffff?text=Group+Energy", timestamp: "Yesterday" }],
+
+                    chat: [
+
+                         { author: "Judy Alvarez", text: "The new class schedule is out!" }
+
+                    ]
+
+                }
+
+            };
+
+
+
+            const globalCommunityData = {
+
+                posts: [
+
+                    { author: "FitnessFanatic", text: "Just finished a 5k run! What's everyone's favorite cardio?", avatar: "FF", image: "https://placehold.co/600x400/fbbf24/ffffff?text=5k+Run", timestamp: "15m ago", sponsored: true, id: 1 },
+
+                    { author: "YogaLover", text: "Sunset yoga session was pure bliss.", avatar: "YL", image: "https://placehold.co/600x400/f472b6/ffffff?text=Sunset+Yoga", timestamp: "1h ago", sponsored: false, id: 2 },
+
+                    { author: "WeightLifter22", text: "Hit a new squat PR today! 🏋️‍♂️", avatar: "WL", image: "https://placehold.co/600x400/ef4444/ffffff?text=Squat+PR", timestamp: "3h ago", sponsored: false, id: 3 },
+
+                    { author: "GymNewbie", text: "First day at the gym! Any tips for beginners?", avatar: "GN", image: "https://placehold.co/600x400/22c55e/ffffff?text=First+Day", timestamp: "5h ago", sponsored: false, id: 4 },
+
+                    { author: "ProteinShakePro", text: "My favorite post-workout smoothie recipe: banana, spinach, protein powder, and almond milk.", avatar: "PS", image: "https://placehold.co/600x400/8b5cf6/ffffff?text=Smoothie", timestamp: "Yesterday", sponsored: false, id: 5 },
+
+                    { author: "CardioKing", text: "Nothing beats a long run to clear your head.", avatar: "CK", image: "https://placehold.co/600x400/3b82f6/ffffff?text=Long+Run", timestamp: "Yesterday", sponsored: false, id: 6 }
+
+                ]
+
+            };
+
+            
+
+            let aiChatHistory = [
+
+                { sender: 'ai', text: 'Hello! I am your personal AI Coach. How can I help you with your fitness goals today?' }
+
+            ];
+
+
+
+            let userState = {
+
+                subscribedGymId: null,
+
+                name: "Alex Doe",
+
+                email: "alex.doe@example.com",
+
+                memberSince: "August 2025",
+
+                isPublic: true
+
+            };
+
+
+
+            const fuse = new Fuse(gyms, { keys: ['name', 'area'], includeScore: true, threshold: 0.4 });
+
+
+
+            // --- ELEMENTS ---
+
+            const gymListContainer = document.getElementById('gym-list');
+
+            const noResultsMessage = document.getElementById('no-results');
+
+            const ratingFilter = document.getElementById('rating-filter');
+
+            const sortFilter = document.getElementById('sort-filter');
+
+            const searchInput = document.getElementById('search-input');
+
+            const showListBtn = document.getElementById('show-list-btn');
+
+            const showMapBtn = document.getElementById('show-map-btn');
+
+            const gymListView = document.getElementById('gym-list-view');
+
+            const mapView = document.getElementById('map-view');
+
+            const mapElement = document.getElementById('map');
+
+            const modal = document.getElementById('gym-modal');
+
+            const modalContent = document.getElementById('modal-content');
+
+            const homeView = document.getElementById('home-view');
+
+            const gymCommunityView = document.getElementById('gym-community-view');
+
+            const globalCommunityView = document.getElementById('global-community-view');
+
+            const aiCoachView = document.getElementById('ai-coach-view');
+
+            const profileView = document.getElementById('profile-view');
+
+            const homeBtn = document.getElementById('home-btn');
+
+            // Desktop Nav
+
+            const homeNavBtn = document.getElementById('home-nav-btn');
+
+            const gymCommunityNavBtn = document.getElementById('gym-community-nav-btn');
+
+            const globalCommunityNavBtn = document.getElementById('global-community-nav-btn');
+
+            const aiCoachNavBtn = document.getElementById('ai-coach-nav-btn');
+
+            const profileNavBtn = document.getElementById('profile-nav-btn');
+
+            // Mobile Nav
+
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+
+            const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            const mobileHomeNavBtn = document.getElementById('mobile-home-nav-btn');
+
+            const mobileGymCommunityNavBtn = document.getElementById('mobile-gym-community-nav-btn');
+
+            const mobileGlobalCommunityNavBtn = document.getElementById('mobile-global-community-nav-btn');
+
+            const mobileAiCoachNavBtn = document.getElementById('mobile-ai-coach-nav-btn');
+
+            const mobileProfileNavBtn = document.getElementById('mobile-profile-nav-btn');
+
+
+
+            let map;
+
+            let markers = [];
+
+            let newMomentPhotoUrl = null;
+
+
+
+            // --- RENDER FUNCTIONS ---
+
+            function renderGymCard(gym) {
+
+                const occupancyPercentage = (gym.members / gym.capacity) * 100;
+
+                let occupancyColor = 'bg-green-500';
+
+                if (occupancyPercentage > 60) occupancyColor = 'bg-yellow-500';
+
+                if (occupancyPercentage > 85) occupancyColor = 'bg-red-500';
+
+                
+
+                const sponsoredClasses = gym.sponsored ? 'ring-2 ring-yellow-400' : 'shadow-elegant';
+
+
+
+                return `
+
+                    <div class="bg-white rounded-xl overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 cursor-pointer fade-in-fast group ${sponsoredClasses}" data-gym-id="${gym.id}">
+
+                        <div class="relative">
+
+                            <img src="${gym.image}" alt="${gym.name}" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+
+                            <div class="absolute top-3 right-3 bg-white/90 text-yellow-500 font-bold px-3 py-1 rounded-full text-sm shadow-md">★ ${gym.rating}</div>
+
+                             ${gym.sponsored ? `<div class="absolute top-3 left-3 bg-yellow-400 text-white font-bold px-3 py-1 rounded-full text-xs shadow-md flex items-center gap-1">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+
+                                SPONSORED
+
+                                </div>` : ''}
+
+                        </div>
+
+                        <div class="p-5">
+
+                            <h3 class="text-xl font-bold text-gray-900 truncate">${gym.name}</h3>
+
+                            <p class="text-gray-600">${gym.area}</p>
+
+                            <div class="mt-4">
+
+                                <div class="flex items-center justify-between text-sm text-gray-600">
+
+                                    <span class="font-semibold">Capacity</span>
+
+                                    <span>${gym.members} / ${gym.capacity}</span>
+
+                                </div>
+
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+
+                                    <div class="${occupancyColor} h-2 rounded-full" style="width: ${occupancyPercentage}%"></div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="flex items-center justify-between mt-4">
+
+                                <span class="text-lg font-semibold text-gray-800">₹${gym.pricing.monthly.toLocaleString()}<span class="text-sm font-normal text-gray-500">/mo</span></span>
+
+                                <span class="text-indigo-600 font-semibold">View Details</span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+
+
+
+            function renderGyms(filteredGyms) {
+
+                gymListContainer.innerHTML = '';
+
+                if (filteredGyms.length === 0) {
+
+                    noResultsMessage.classList.remove('hidden');
+
+                } else {
+
+                    noResultsMessage.classList.add('hidden');
+
+                    filteredGyms.forEach(gym => {
+
+                        gymListContainer.innerHTML += renderGymCard(gym);
+
+                    });
+
+                }
+
+                updateMapMarkers(filteredGyms);
+
+                addCardClickListeners();
+
+            }
+
+
+
+            function renderModalContent(gym) {
+
+                return `
+
+                    <div class="relative">
+
+                        <button id="close-modal" class="absolute top-4 right-4 text-white bg-black bg-opacity-40 rounded-full p-2 hover:bg-opacity-60 transition z-10">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+
+                        </button>
+
+                        <img src="${gym.image}" alt="${gym.name}" class="w-full h-64 object-cover rounded-t-xl">
+
+                    </div>
+
+                    <div class="p-6 sm:p-8">
+
+                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">${gym.name}</h2>
+
+                        <p class="text-gray-600 text-lg mt-1">${gym.area}</p>
+
+                        <div class="my-4 flex flex-wrap items-center gap-3">
+
+                           <span class="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-800 font-semibold px-3 py-1 rounded-full text-sm">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+
+                                ${gym.rating}
+
+                           </span>
+
+                           <span class="inline-flex items-center gap-1.5 bg-blue-100 text-blue-800 font-semibold px-3 py-1 rounded-full text-sm">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+
+                                ${gym.members} / ${gym.capacity} Members
+
+                           </span>
+
+                           ${gym.discount ? `<span class="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">${gym.discount}</span>` : ''}
+
+                        </div>
+
+                        <div class="my-6">
+
+                           <h4 class="text-xl font-semibold mb-3 text-gray-800">Amenities</h4>
+
+                           <div class="flex flex-wrap gap-2">${gym.amenities.map(item => `<span class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-sm font-medium">${item}</span>`).join('')}</div>
+
+                        </div>
+
+
+
+                        ${gym.trainer && gym.trainer.available ? `
+
+                        <div class="my-6">
+
+                           <h4 class="text-xl font-semibold mb-3 text-gray-800">Hire a Personal Trainer</h4>
+
+                           <div class="bg-gray-50 p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+
+                               <div>
+
+                                   <p class="font-semibold text-gray-800">One-on-One Coaching</p>
+
+                                   <p class="text-sm text-gray-600">Get personalized guidance from certified trainers.</p>
+
+                               </div>
+
+                               <div class="text-center sm:text-right">
+
+                                    <p class="text-2xl font-bold text-indigo-600">₹${gym.trainer.costPerHour.toLocaleString()}<span class="text-sm font-normal text-gray-500">/hour</span></p>
+
+                                    <button class="mt-1 bg-indigo-100 text-indigo-700 font-semibold py-2 px-4 rounded-lg hover:bg-indigo-200 transition text-sm">Book a Session</button>
+
+                               </div>
+
+                           </div>
+
+                        </div>
+
+                        ` : ''}
+
+
+
+                        <div class="my-8">
+
+                           <h4 class="text-xl font-semibold mb-4 text-gray-800">Subscription Plans</h4>
+
+                           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+
+                               ${renderPlanCard('Daily', gym.pricing.daily, false)}
+
+                               ${renderPlanCard('Monthly', gym.pricing.monthly, true)}
+
+                               ${renderPlanCard('Quarterly', gym.pricing.quarterly, false)}
+
+                               ${renderPlanCard('Yearly', gym.pricing.yearly, false)}
+
+                           </div>
+
+                        </div>
+
+                        <button id="subscribe-btn" data-gym-id="${gym.id}" class="w-full brand-gradient text-white font-bold py-4 px-6 rounded-lg hover:shadow-lg hover:shadow-indigo-500/50 transition-shadow duration-300 text-lg">Join Community & Subscribe</button>
+
+                    </div>
+
+                `;
+
+            }
+
+            
+
+            function renderPlanCard(title, price, isFeatured) {
+
+                const featuredClasses = isFeatured 
+
+                    ? 'border-indigo-500 ring-2 ring-indigo-500 bg-indigo-50' 
+
+                    : 'border-gray-200 bg-white';
+
+                const textColor = isFeatured ? 'text-indigo-900' : 'text-gray-900';
+
+                const titleColor = isFeatured ? 'text-indigo-700' : 'text-gray-500';
+
+                return `
+
+                    <div class="border p-3 sm:p-4 rounded-lg transition-transform duration-300 plan-card ${featuredClasses}">
+
+                        <p class="text-sm font-medium ${titleColor}">${title}</p>
+
+                        <p class="text-lg sm:text-xl font-bold ${textColor}">₹${price.toLocaleString()}</p>
+
+                    </div>`;
+
+            }
+
+
+
+            function renderGymCommunityView() {
+
+                if (userState.subscribedGymId) {
+
+                    const gym = gyms.find(g => g.id === userState.subscribedGymId);
+
+                    const data = gymCommunityData[userState.subscribedGymId] || { members: [], events: [], posts: [], chat: [] };
+
+                    gymCommunityView.innerHTML = `
+
+                        <div class="text-center mb-8">
+
+                            <h2 class="text-3xl font-bold text-gray-900 sm:text-4xl">Welcome to the ${gym.name} Community!</h2>
+
+                            <p class="mt-2 text-lg text-gray-600">Connect with fellow members, join events, and stay motivated.</p>
+
+                        </div>
+
+
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                            <div class="lg:col-span-2">
+
+                                <button id="show-gym-post-form-btn" class="w-full text-lg font-semibold bg-gray-800 text-white py-4 rounded-xl shadow-lg hover:bg-gray-900 transition mb-8">
+
+                                    Post a Gym Moment
+
+                                </button>
+
+                                <div id="gym-post-moment-form" class="hidden mb-8">
+
+                                    ${renderPostForm('gym')}
+
+                                </div>
+
+                                <div id="gym-community-feed" class="space-y-6">
+
+                                    ${data.posts.map(post => renderPostCard(post, 'gym')).join('')}
+
+                                </div>
+
+                            </div>
+
+                            <div class="space-y-8">
+
+                                <div class="bg-white p-6 rounded-xl shadow-elegant">
+
+                                    <h3 class="text-2xl font-bold mb-4">Members (${data.members.length})</h3>
+
+                                    <div class="flex flex-wrap gap-2">
+
+                                        ${data.members.map(member => `<span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">${member}</span>`).join('')}
+
+                                    </div>
+
+                                </div>
+
+                                <div class="bg-white p-6 rounded-xl shadow-elegant">
+
+                                    <h3 class="text-2xl font-bold mb-4">Upcoming Events</h3>
+
+                                    <ul class="space-y-2">
+
+                                        ${data.events.map(event => `<li class="p-2 bg-indigo-50 rounded-lg"><strong class="text-indigo-700">${event.name}</strong> - ${event.date}</li>`).join('')}
+
+                                    </ul>
+
+                                </div>
+
+                                <div class="bg-white p-6 rounded-xl shadow-elegant">
+
+                                    <h3 class="text-2xl font-bold mb-4">Community Chat</h3>
+
+                                    <div id="chat-messages" class="h-48 overflow-y-auto space-y-3 pr-2 mb-4 chat-scrollbar">
+
+                                        ${data.chat.map(msg => `<div class="text-sm"><p class="font-semibold">${msg.author}</p><p class="text-gray-700">${msg.text}</p></div>`).join('')}
+
+                                    </div>
+
+                                    <div class="flex gap-2">
+
+                                        <input type="text" id="chat-input" placeholder="Type a message..." class="flex-grow px-3 py-2 border border-gray-300 rounded-lg text-sm">
+
+                                        <button id="send-chat-btn" class="bg-indigo-600 text-white font-semibold px-4 rounded-lg">Send</button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                    document.getElementById('show-gym-post-form-btn').addEventListener('click', () => {
+
+                        document.getElementById('gym-post-moment-form').classList.toggle('hidden');
+
+                        document.getElementById('gym-post-moment-form').classList.add('slide-down');
+
+                    });
+
+                    document.getElementById('add-photo-btn-gym').addEventListener('click', handleAddPhoto);
+
+                    document.getElementById('post-moment-btn-gym').addEventListener('click', () => handleNewMomentPost('gym'));
+
+                    document.getElementById('send-chat-btn').addEventListener('click', handleNewChatMessage);
+
+                    document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') handleNewChatMessage(); });
+
+
+
+                } else {
+
+                     gymCommunityView.innerHTML = `
+
+                        <div class="text-center py-16 bg-white rounded-xl shadow-elegant">
+
+                             <h2 class="text-3xl font-bold text-gray-900">Join a Gym to Access Your Community!</h2>
+
+                             <p class="mt-2 text-lg text-gray-600">Subscribe to a gym from our list to connect with members and join events.</p>
+
+                             <button id="browse-gyms-btn" class="mt-6 brand-gradient text-white font-bold py-3 px-6 rounded-lg">Browse Gyms</button>
+
+                        </div>
+
+                    `;
+
+                    document.getElementById('browse-gyms-btn').addEventListener('click', showHomeView);
+
+                }
+
+            }
+
+            
+
+            function renderGlobalCommunityView() {
+
+                const sponsoredPosts = globalCommunityData.posts.filter(p => p.sponsored);
+
+                const regularPosts = globalCommunityData.posts.filter(p => !p.sponsored);
+
+                const allPosts = [...sponsoredPosts, ...regularPosts];
+
+
+
+                globalCommunityView.innerHTML = `
+
+                    <div class="container mx-auto">
+
+                        <div class="text-center mb-8">
+
+                            <h2 class="text-3xl font-bold text-gray-900 sm:text-4xl">Global Fitness Hub</h2>
+
+                            <p class="mt-2 text-lg text-gray-600">Share your fitness journey with everyone!</p>
+
+                        </div>
+
+                        <div class="max-w-2xl mx-auto">
+
+                            <button id="show-global-post-form-btn" class="w-full text-lg font-semibold bg-gray-800 text-white py-4 rounded-xl shadow-lg hover:bg-gray-900 transition mb-8">
+
+                                Post a Public Moment
+
+                            </button>
+
+                            <div id="global-post-moment-form" class="hidden mb-8">
+
+                                ${renderPostForm('global')}
+
+                            </div>
+
+                        </div>
+
+                        <div id="global-community-feed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                            ${allPosts.map(post => renderPostCard(post, 'global')).join('')}
+
+                        </div>
+
+                    </div>
+
+                `;
+
+                document.getElementById('show-global-post-form-btn').addEventListener('click', () => {
+
+                    document.getElementById('global-post-moment-form').classList.toggle('hidden');
+
+                    document.getElementById('global-post-moment-form').classList.add('slide-down');
+
+                });
+
+                document.getElementById('add-photo-btn-global').addEventListener('click', handleAddPhoto);
+
+                document.getElementById('post-moment-btn-global').addEventListener('click', () => handleNewMomentPost('global'));
+
+            }
+
+
+
+            function renderPostForm(type) {
+
+                return `
+
+                    <div class="bg-white p-4 rounded-xl shadow-elegant">
+
+                        <p class="font-semibold text-center text-gray-700">Share your moment</p>
+
+                        <textarea id="moment-caption-input-${type}" class="w-full mt-2 p-2 border border-gray-300 rounded-lg" placeholder="Add a caption..."></textarea>
+
+                        <div id="photo-preview-container-${type}" class="mt-2"></div>
+
+                        <div class="flex justify-between items-center mt-2">
+
+                            <button id="add-photo-btn-${type}" class="flex items-center gap-2 text-indigo-600 font-semibold p-2 rounded-lg hover:bg-indigo-50">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+
+                                <span>Add Photo</span>
+
+                            </button>
+
+                            <button id="post-moment-btn-${type}" class="brand-gradient text-white font-semibold py-2 px-6 rounded-lg">Post Moment</button>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+
+            
+
+            function renderPostCard(post, type) {
+
+                const sponsoredClasses = post.sponsored ? 'ring-2 ring-yellow-400' : 'shadow-elegant';
+
+                const isMyPost = post.author === userState.name;
+
+                const postId = post.id || post.timestamp;
+
+                
+
+                return `
+
+                    <div class="bg-white rounded-xl overflow-hidden fade-in-fast ${sponsoredClasses}">
+
+                        <div class="p-4 flex items-center justify-between">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">${post.avatar}</div>
+
+                                <div>
+
+                                    <p class="font-semibold">${post.author}</p>
+
+                                    <p class="text-sm text-gray-500">${post.timestamp}</p>
+
+                                </div>
+
+                            </div>
+
+                            ${post.sponsored ? `<span class="bg-yellow-400 text-white font-bold px-2 py-0.5 rounded-full text-xs">SPONSORED</span>` : ''}
+
+                            ${isMyPost ? `<button class="text-red-500 hover:text-red-700 font-semibold text-sm" onclick="handleDeletePost('${postId}', '${type}')">Delete</button>` : ''}
+
+                        </div>
+
+                        <p class="px-4 pb-3">${post.text}</p>
+
+                        ${post.image ? `<img src="${post.image}" class="w-full h-auto" alt="Gym moment">` : ''}
+
+                         <div class="p-2 flex items-center justify-around border-t border-gray-100">
+
+                             <button class="flex items-center gap-2 text-gray-600 hover:text-red-500 p-2 rounded-lg font-semibold w-full justify-center">🔥 Fire</button>
+
+                             <button class="flex items-center gap-2 text-gray-600 hover:text-indigo-600 p-2 rounded-lg font-semibold w-full justify-center">💬 Comment</button>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+
+            
+
+            function renderAiCoachView() {
+
+                aiCoachView.innerHTML = `
+
+                    <div class="max-w-2xl mx-auto">
+
+                         <div class="text-center mb-8">
+
+                            <h2 class="text-3xl font-bold text-gray-900 sm:text-4xl">Your Personal AI Coach</h2>
+
+                            <p class="mt-2 text-lg text-gray-600">Ask me anything about fitness, nutrition, or workout plans!</p>
+
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-elegant">
+
+                            <div id="ai-chat-window" class="p-6 h-96 overflow-y-auto space-y-4 chat-scrollbar">
+
+                                </div>
+
+                            <div class="p-4 border-t border-gray-200 flex gap-2">
+
+                                <input type="text" id="ai-chat-input" placeholder="Ask your question..." class="flex-grow px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+
+                                <button id="ai-chat-send-btn" class="brand-gradient text-white font-semibold px-5 py-2 rounded-full">Send</button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+                renderAiChatMessages();
+
+                document.getElementById('ai-chat-send-btn').addEventListener('click', handleAiCoachMessage);
+
+                document.getElementById('ai-chat-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') handleAiCoachMessage(); });
+
+            }
+
+            
+
+            function renderAiChatMessages() {
+
+                const chatWindow = document.getElementById('ai-chat-window');
+
+                chatWindow.innerHTML = aiChatHistory.map(msg => {
+
+                    if (msg.sender === 'ai') {
+
+                        return `
+
+                            <div class="flex gap-3">
+
+                                <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">AI</div>
+
+                                <div class="bg-gray-100 p-3 rounded-lg">
+
+                                    <p>${msg.text}</p>
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    } else if (msg.sender === 'user') {
+
+                         return `
+
+                            <div class="flex gap-3 justify-end">
+
+                                 <div class="bg-indigo-500 text-white p-3 rounded-lg">
+
+                                    <p>${msg.text}</p>
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    } else { // Typing indicator
+
+                         return `
+
+                            <div class="flex gap-3">
+
+                                <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">AI</div>
+
+                                <div class="bg-gray-100 p-3 rounded-lg typing-indicator">
+
+                                    <span></span><span></span><span></span>
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }
+
+                }).join('');
+
+                chatWindow.scrollTop = chatWindow.scrollHeight; // Auto-scroll to bottom
+
+            }
+
+
+
+            function renderProfileView() {
+
+                 let subscriptionHtml = '';
+
+                 if (userState.subscribedGymId) {
+
+                     const gym = gyms.find(g => g.id === userState.subscribedGymId);
+
+                     subscriptionHtml = `
+
+                        <div class="mt-8">
+
+                            <h3 class="text-xl font-bold text-gray-800">My Current Subscription</h3>
+
+                            <div class="mt-4 bg-white p-6 rounded-xl border border-gray-200 flex items-center justify-between">
+
+                                <div>
+
+                                    <p class="font-bold text-lg">${gym.name}</p>
+
+                                    <p class="text-gray-600">${gym.area}</p>
+
+                                </div>
+
+                                <a href="#" class="brand-gradient text-white font-semibold py-2 px-4 rounded-lg">Manage</a>
+
+                            </div>
+
+                        </div>
+
+                     `;
+
+                 }
+
+                
+
+                const userPosts = [
+
+                    ...(gymCommunityData[userState.subscribedGymId]?.posts.filter(p => p.author === userState.name) || []),
+
+                    ...globalCommunityData.posts.filter(p => p.author === userState.name)
+
+                ];
+
+
+
+                profileView.innerHTML = `
+
+                    <div class="max-w-2xl mx-auto">
+
+                        <div class="bg-white rounded-xl shadow-elegant p-8 text-center">
+
+                            <div class="relative w-32 h-32 mx-auto">
+
+                                <img class="w-full h-full rounded-full" src="https://placehold.co/128x128/6366f1/ffffff?text=AD" alt="Profile Picture">
+
+                            </div>
+
+                            <h2 class="text-3xl font-bold mt-4">${userState.name}</h2>
+
+                            <p class="text-gray-600">${userState.email}</p>
+
+                            <p class="text-sm text-gray-500 mt-2">Member since ${userState.memberSince}</p>
+
+                        </div>
+
+                        
+
+                        <div class="bg-white rounded-xl shadow-elegant p-8 mt-8">
+
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Privacy Settings</h3>
+
+                            <div class="flex items-center justify-between">
+
+                                <div>
+
+                                    <p class="font-semibold">Public Account</p>
+
+                                    <p class="text-sm text-gray-600">Your profile and posts are visible to everyone in the Global Hub.</p>
+
+                                </div>
+
+                                <label class="switch">
+
+                                    <input type="checkbox" id="privacy-toggle" ${userState.isPublic ? 'checked' : ''}>
+
+                                    <span class="slider"></span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+
+
+                        ${subscriptionHtml}
+
+                        
+
+                        <div class="mt-8">
+
+                             <h3 class="text-xl font-bold text-gray-800">My Posts</h3>
+
+                             <div class="mt-4 space-y-6">
+
+                                ${userPosts.length > 0 ? userPosts.map(post => renderPostCard(post, post.id ? 'global' : 'gym')).join('') : `<p class="text-gray-500 text-center">You have not created any posts yet.</p>`}
+
+                             </div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+                
+
+                document.getElementById('privacy-toggle').addEventListener('change', (e) => {
+
+                    userState.isPublic = e.target.checked;
+
+                    console.log(`Account is now ${userState.isPublic ? 'Public' : 'Private'}`);
+
+                    // A real app would send this to the server
+
+                });
+
+            }
+
+            
+
+            // --- VIEW & STATE MANAGEMENT ---
+
+            function setActiveView(view) {
+
+                [homeView, gymCommunityView, globalCommunityView, aiCoachView, profileView].forEach(v => v.classList.add('hidden'));
+
+                view.classList.remove('hidden');
+
+            }
+
+
+
+            function showHomeView() { setActiveView(homeView); showListView(); }
+
+            function showGymCommunityView() { setActiveView(gymCommunityView); renderGymCommunityView(); }
+
+            function showGlobalCommunityView() { setActiveView(globalCommunityView); renderGlobalCommunityView(); }
+
+            function showAiCoachView() { setActiveView(aiCoachView); renderAiCoachView(); }
+
+            function showProfileView() { setActiveView(profileView); renderProfileView(); }
+
+
+
+            function showListView() {
+
+                gymListView.classList.remove('hidden');
+
+                mapView.classList.add('hidden');
+
+                showListBtn.classList.add('bg-indigo-600', 'text-white', 'shadow');
+
+                showListBtn.classList.remove('text-gray-600');
+
+                showMapBtn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+
+                showMapBtn.classList.add('text-gray-600');
+
+            }
+
+
+
+            function showMapView() {
+
+                gymListView.classList.add('hidden');
+
+                mapView.classList.remove('hidden');
+
+                showMapBtn.classList.add('bg-indigo-600', 'text-white', 'shadow');
+
+                showMapBtn.classList.remove('text-gray-600');
+
+                showListBtn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+
+                showListBtn.classList.add('text-gray-600');
+
+                initMap();
+
+                map.invalidateSize();
+
+                updateGymDisplay();
+
+            }
+
+
+
+            function updateGymDisplay() {
+
+                const rating = parseFloat(ratingFilter.value);
+
+                const searchTerm = searchInput.value.trim().toLowerCase();
+
+                let filteredGyms = [];
+
+
+
+                if (searchTerm) {
+
+                    filteredGyms = fuse.search(searchTerm).map(result => result.item);
+
+                } else {
+
+                    filteredGyms = [...gyms];
+
+                }
+
+                
+
+                if (rating > 0) {
+
+                    filteredGyms = filteredGyms.filter(gym => gym.rating >= rating);
+
+                }
+
+
+
+                // Separate sponsored from non-sponsored
+
+                const sponsoredGyms = filteredGyms.filter(gym => gym.sponsored);
+
+                const nonSponsoredGyms = filteredGyms.filter(gym => !gym.sponsored);
+
+
+
+                // Sort non-sponsored gyms
+
+                const sortBy = sortFilter.value;
+
+                if (sortBy === 'price_asc') {
+
+                    nonSponsoredGyms.sort((a, b) => a.pricing.monthly - b.pricing.monthly);
+
+                } else if (sortBy === 'price_desc') {
+
+                    nonSponsoredGyms.sort((a, b) => b.pricing.monthly - a.pricing.monthly);
+
+                } else if (sortBy === 'best_value') {
+
+                    // Higher rating and lower price is better. Score = rating / price. Sort descending.
+
+                    nonSponsoredGyms.sort((a, b) => (b.rating / b.pricing.monthly) - (a.rating / a.pricing.monthly));
+
+                }
+
+                
+
+                // Combine with sponsored gyms at the top
+
+                const displayedGyms = [...sponsoredGyms, ...nonSponsoredGyms];
+
+
+
+                renderGyms(displayedGyms);
+
+            }
+
+            
+
+            // --- MAP FUNCTIONS ---
+
+            function initMap() {
+
+                if (map) return;
+
+                map = L.map(mapElement).setView([12.9716, 77.5946], 11);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
+                }).addTo(map);
+
+            }
+
+            
+
+            function updateMapMarkers(gymsToDisplay) {
+
+                if (!map) return;
+
+                markers.forEach(marker => map.removeLayer(marker));
+
+                markers = [];
+
+
+
+                gymsToDisplay.forEach(gym => {
+
+                    const marker = L.marker([gym.lat, gym.lng]).addTo(map);
+
+                    marker.bindPopup(`<div class="font-sans"><h3 class="font-bold text-lg">${gym.name}</h3><p>${gym.area}</p><p class="font-semibold">★ ${gym.rating}</p></div>`);
+
+                    markers.push(marker);
+
+                });
+
+            }
+
+
+
+            // --- MODAL FUNCTIONS ---
+
+            function openModal(gymId) {
+
+                const gym = gyms.find(g => g.id === gymId);
+
+                if (gym) {
+
+                    modalContent.innerHTML = renderModalContent(gym);
+
+                    modal.classList.remove('hidden');
+
+                    setTimeout(() => {
+
+                         modalContent.classList.add('scale-100', 'opacity-100');
+
+                    }, 10);
+
+                    document.getElementById('close-modal').addEventListener('click', closeModal);
+
+                    document.getElementById('subscribe-btn').addEventListener('click', handleSubscription);
+
+                }
+
+            }
+
+            
+
+            function closeModal() {
+
+                 modalContent.classList.remove('scale-100', 'opacity-100');
+
+                 setTimeout(() => {
+
+                     modal.classList.add('hidden');
+
+                 }, 300);
+
+            }
+
+
+
+            function handleSubscription(e) {
+
+                const gymId = parseInt(e.target.dataset.gymId);
+
+                userState.subscribedGymId = gymId;
+
+                closeModal();
+
+                setTimeout(() => {
+
+                    showGymCommunityView();
+
+                }, 350);
+
+            }
+
+            
+
+            // --- COMMUNITY & AI ---
+
+            function handleAddPhoto() {
+
+                const photoThemes = ['fitness', 'workout', 'gym', 'lifting', 'running'];
+
+                const randomTheme = photoThemes[Math.floor(Math.random() * photoThemes.length)];
+
+                newMomentPhotoUrl = `https://placehold.co/600x400/1f2937/ffffff?text=${randomTheme}`;
+
+                
+
+                const gymPreview = document.getElementById('photo-preview-container-gym');
+
+                if(gymPreview) gymPreview.innerHTML = `<img src="${newMomentPhotoUrl}" class="rounded-lg mt-2 w-full h-auto">`;
+
+                
+
+                const globalPreview = document.getElementById('photo-preview-container-global');
+
+                if(globalPreview) globalPreview.innerHTML = `<img src="${newMomentPhotoUrl}" class="rounded-lg mt-2 w-full h-auto">`;
+
+            }
+
+
+
+            function handleNewMomentPost(type) {
+
+                const captionInput = document.getElementById(`moment-caption-input-${type}`);
+
+                const captionText = captionInput.value.trim();
+
+                if (!captionText && !newMomentPhotoUrl) return;
+
+                
+
+                const uniqueId = Date.now();
+
+
+
+                const newPost = {
+
+                    author: userState.name,
+
+                    text: captionText,
+
+                    avatar: userState.name.split(' ').map(n => n[0]).join(''),
+
+                    image: newMomentPhotoUrl,
+
+                    timestamp: "Just now",
+
+                    sponsored: false,
+
+                    id: uniqueId
+
+                };
+
+
+
+                if (type === 'gym' && userState.subscribedGymId) {
+
+                    gymCommunityData[userState.subscribedGymId].posts.unshift(newPost);
+
+                    document.getElementById('gym-post-moment-form').classList.add('hidden');
+
+                    renderGymCommunityView(); 
+
+                } else if (type === 'global') {
+
+                    globalCommunityData.posts.unshift(newPost);
+
+                    document.getElementById('global-post-moment-form').classList.add('hidden');
+
+                    renderGlobalCommunityView();
+
+                }
+
+                
+
+                newMomentPhotoUrl = null; 
+
+                captionInput.value = '';
+
+            }
+
+            
+
+            window.handleDeletePost = function(postId, type) {
+
+                if (confirm('Are you sure you want to delete this post?')) {
+
+                    if (type === 'global') {
+
+                        globalCommunityData.posts = globalCommunityData.posts.filter(p => p.id !== parseInt(postId));
+
+                        renderGlobalCommunityView();
+
+                    } else if (type === 'gym') {
+
+                        gymCommunityData[userState.subscribedGymId].posts = gymCommunityData[userState.subscribedGymId].posts.filter(p => p.timestamp !== postId);
+
+                        renderGymCommunityView();
+
+                    }
+
+                }
+
+            };
+
+            
+
+            function handleNewChatMessage() {
+
+                const chatInput = document.getElementById('chat-input');
+
+                const messageText = chatInput.value.trim();
+
+                if (messageText && userState.subscribedGymId) {
+
+                    const community = gymCommunityData[userState.subscribedGymId];
+
+                    if (community) {
+
+                        community.chat.push({ author: userState.name, text: messageText });
+
+                        chatInput.value = '';
+
+                        renderGymCommunityView();
+
+                    }
+
+                }
+
+            }
+
+            
+
+            function getAiResponse(userInput) {
+
+                const input = userInput.toLowerCase();
+
+                if (input.includes('protein')) {
+
+                    return "A good rule of thumb for protein intake is about 1.6-2.2 grams per kilogram of body weight if you're active. Sources like chicken, fish, eggs, and legumes are excellent choices.";
+
+                } else if (input.includes('bicep')) {
+
+                    return "For bigger biceps, focus on variety and form. Include exercises like Barbell Curls for mass, Incline Dumbbell Curls for the long head, and Hammer Curls for the brachialis and forearm. Aim for 3-4 sets of 8-12 reps.";
+
+                } else if (input.includes('tricep')) {
+
+                    return "Triceps make up about 2/3 of your upper arm mass! Don't neglect them. Great exercises include Cable Pushdowns, Skull Crushers (lying tricep extensions), and Overhead Dumbbell Extensions. Close-grip bench presses are also fantastic for building mass.";
+
+                } else if (input.includes('abs') || input.includes('core')) {
+
+                    return "A strong core is key! For abs, include a mix of exercises. Crunches and leg raises target the upper and lower rectus abdominis. Planks are excellent for transverse abdominis (deep core stability). Russian twists work the obliques. Remember, visible abs are also highly dependent on low body fat.";
+
+                } else if (input.includes('leg') || input.includes('squat') || input.includes('quads') || input.includes('hamstrings')) {
+
+                    return "Never skip leg day! A balanced leg workout hits all major muscles. Barbell Squats are king for overall leg development. Romanian Deadlifts target the hamstrings and glutes. Leg Press is great for quads, and Calf Raises will build your calves. Lunges are also a fantastic unilateral exercise for stability and strength.";
+
+                } else if (input.includes('cardio')) {
+
+                    return "For cardiovascular health, aim for at least 150 minutes of moderate-intensity activity (like brisk walking or cycling) or 75 minutes of vigorous-intensity activity (like running) per week. Mixing steady-state cardio with HIIT (High-Intensity Interval Training) can be very effective for improving endurance and burning fat.";
+
+                } else if (input.includes('lose weight') || input.includes('fat loss')) {
+
+                    return "Weight loss is primarily about a consistent calorie deficit. Combining regular strength training to build muscle (which boosts your metabolism) and a balanced diet is a very effective strategy. Don't forget to get enough sleep and manage stress, as they also play a big role!";
+
+                }
+
+                return "That's a great question. While I'm still learning, I'd recommend consulting with a certified personal trainer for personalized advice on that topic. They can create a plan tailored specifically for you.";
+
+            }
+
+
+
+            function handleAiCoachMessage() {
+
+                const inputEl = document.getElementById('ai-chat-input');
+
+                const userInput = inputEl.value.trim();
+
+                if (!userInput) return;
+
+
+
+                aiChatHistory.push({ sender: 'user', text: userInput });
+
+                aiChatHistory.push({ sender: 'typing' });
+
+                renderAiChatMessages();
+
+                inputEl.value = '';
+
+
+
+                setTimeout(() => {
+
+                    const aiText = getAiResponse(userInput);
+
+                    aiChatHistory.pop(); // Remove typing indicator
+
+                    aiChatHistory.push({ sender: 'ai', text: aiText });
+
+                    renderAiChatMessages();
+
+                }, 1500);
+
+            }
+
+
+
+            function addCardClickListeners() {
+
+                document.querySelectorAll('[data-gym-id]').forEach(card => {
+
+                    card.addEventListener('click', (e) => {
+
+                        const gymId = parseInt(card.dataset.gymId);
+
+                        openModal(gymId);
+
+                    });
+
+                });
+
+            }
+
+
+
+            // --- MOBILE MENU ---
+
+            function toggleMobileMenu(show) {
+
+                if (show) {
+
+                    mobileMenu.classList.remove('-translate-x-full');
+
+                } else {
+
+                    mobileMenu.classList.add('-translate-x-full');
+
+                }
+
+            }
+
+
+
+            // --- EVENT LISTENERS ---
+
+            ratingFilter.addEventListener('input', updateGymDisplay);
+
+            searchInput.addEventListener('input', updateGymDisplay);
+
+            sortFilter.addEventListener('input', updateGymDisplay);
+
+            showListBtn.addEventListener('click', showListView);
+
+            showMapBtn.addEventListener('click', showMapView);
+
+            homeBtn.addEventListener('click', showHomeView);
+
+
+
+            // Desktop Nav
+
+            homeNavBtn.addEventListener('click', (e) => { e.preventDefault(); showHomeView(); });
+
+            gymCommunityNavBtn.addEventListener('click', (e) => { e.preventDefault(); showGymCommunityView(); });
+
+            globalCommunityNavBtn.addEventListener('click', (e) => { e.preventDefault(); showGlobalCommunityView(); });
+
+            aiCoachNavBtn.addEventListener('click', (e) => { e.preventDefault(); showAiCoachView(); });
+
+            profileNavBtn.addEventListener('click', (e) => { e.preventDefault(); showProfileView(); });
+
+            
+
+            // Mobile Nav
+
+            mobileMenuBtn.addEventListener('click', () => toggleMobileMenu(true));
+
+            closeMobileMenuBtn.addEventListener('click', () => toggleMobileMenu(false));
+
+            
+
+            [mobileHomeNavBtn, mobileGymCommunityNavBtn, mobileGlobalCommunityNavBtn, mobileAiCoachNavBtn, mobileProfileNavBtn].forEach(btn => {
+
+                btn.addEventListener('click', (e) => {
+
+                    e.preventDefault();
+
+                    const targetId = e.target.id;
+
+                    if(targetId.includes('home')) showHomeView();
+
+                    else if(targetId.includes('gym')) showGymCommunityView();
+
+                    else if(targetId.includes('global')) showGlobalCommunityView();
+
+                    else if(targetId.includes('ai-coach')) showAiCoachView();
+
+                    else if(targetId.includes('profile')) showProfileView();
+
+                    toggleMobileMenu(false);
+
+                });
+
+            });
+
+            
+
+            modal.addEventListener('click', (e) => {
+
+                if (e.target === modal) closeModal();
+
+            });
+
+
+
+            // --- INITIAL RENDER ---
+
+            updateGymDisplay();
+
+
+
+        });
+
+    </script>
+
+</body>
+
+</html>
