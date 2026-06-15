@@ -17,5 +17,5 @@ To run GymHub locally, follow these steps:
 
 1. **Clone the Repository:**
 ```bash
-   git clone [https://github.com/](https://github.com/)[YourUsername]/GymHub.git
+   git clone https://github.com/gaurav-2188/GymHub.git
    cd GymHub
